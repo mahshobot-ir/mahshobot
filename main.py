@@ -29,13 +29,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "سلام! 🌸\n"
         "به ربات ماه‌شو خوش اومدی!\n"
         "مجموعه ما با بهره‌گیری از هوش مصنوعی بصورت تخصصی وضعیت سلامت پوست و مو شما را آنالیز می‌کنه و مناسب‌ترین محصولات را پیشنهاد میده.\n\n"
-        "📸 لطفاً برای شروع عکس صورت یا پوستت را بفرست تا بررسی کنم."
+        "📸 لطفاً برای شروع **عکس صورت یا پوستت** را بفرست تا بررسی کنم."
     )
     return PHOTO
 
 async def photo_received(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("عکس دریافت شد! ✅\n\n"
-                                    "حالا لطفاً مشکل پوستی‌ات رو توضیح بده (مثلاً: جوش، خشکی، لک، چروک...)\n"
+                                    "حالا لطفاً **مشکل پوستی‌ات** رو توضیح بده (مثلاً: جوش، خشکی، لک، چروک...)\n"
                                     "هر چی بیشتر توضیح بدی، جواب دقیق‌تر می‌شه! 🤔")
     
     photo_file = await update.message.photo[-1].get_file()
@@ -66,4 +66,49 @@ async def description_received(update: Update, context: ContextTypes.DEFAULT_TYP
                 break
         
         product = PRODUCTS.get(problem, PRODUCTS["عمومی"])
-        product_text = f"[خرید {product['name']}]({
+        product_text = f"[خرید {product['name']}]({product['link']}) 🌟" if product.get("link") else product["name"]
+        
+        prompt = (
+            f"عکس پوست + توضیح کاربر: \"{user_desc}\"\n"
+            "تحلیل دقیق کن و پاسخ فارسی کوتاه و حرفه‌ای بده:\n\n"
+            "1. مشکل چیه؟\n"
+            "2. روتین ۳ مرحله (صبح، شب، هفتگی)\n"
+            "3. هشدار پزشکی\n"
+            "4. محصول پیشنهادی: فقط این رو بنویس: {product_text}\n\n"
+            "هر بخش یک پاراگراف با یک خط فاصله. ایموجی جذاب اضافه کن.\n"
+            "در آخر: ممنون از استفاده از ربات ماه‌شو! 🌸"
+        )
+        
+        response = model.generate_content([
+            prompt,
+            {"inline_data": {"mime_type": mime_type, "data": image_base64}}
+        ])
+        
+        await update.message.reply_text(response.text, parse_mode='Markdown')
+        
+    except Exception as e:
+        print(f"Error: {e}")
+        await update.message.reply_text("متأسفانه مشکلی پیش اومد 😔\n"
+                                        "لطفاً دوباره /start بزن.\n"
+                                        "ممنون از استفاده از ربات ماه‌شو! 🌸")
+    
+    return ConversationHandler.END
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("ممنون از استفاده از ربات ماه‌شو! 🌸\nهر وقت خواستی دوباره /start بزن.")
+    return ConversationHandler.END
+
+# ربات
+app = Application.builder().token(BOT_TOKEN).build()
+
+conv_handler = ConversationHandler(
+    entry_points=[CommandHandler('start', start)],
+    states={
+        PHOTO: [MessageHandler(filters.PHOTO, photo_received)],
+        DESCRIPTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, description_received)],
+    },
+    fallbacks=[CommandHandler('cancel', cancel)]
+)
+
+app.add_handler(conv_handler)
+app.run_polling()
