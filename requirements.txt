@@ -1,4 +1,2 @@
-python-telegram-bot
-google-generativeai
-feedparser
 python-telegram-bot==20.8
+google-generativeai
