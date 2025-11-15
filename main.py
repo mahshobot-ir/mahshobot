@@ -12,17 +12,24 @@ if not GEMINI_KEY or not BOT_TOKEN:
     raise ValueError("❌ لطفاً متغیرهای محیطی GEMINI_KEY و BOT_TOKEN را تنظیم کن.")
 
 genai.configure(api_key=GEMINI_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-2.0-flash-exp')
 
 PHOTO, DESCRIPTION = range(2)
 
 PRODUCTS = {
-    "جوش": {"name": "سرم ضدجوش COSRX", "link": "https://mahshobio.ir/cosrx-acne"},
-    "خشکی": {"name": "سرم هیالورونیک Ordinary", "link": "https://mahshobio.ir/ordinary-hyaluronic"},
-    "لک": {"name": "سرم ضدلک Axis-Y", "link": "https://mahshobio.ir/axis-y-spot"},
-    "چروک": {"name": "کرم ضدچروک قوی", "link": "https://mahshobio.ir/anti-wrinkle-cream"},
-    "حساسیت": {"name": "کرم تسکین‌دهنده Clinique", "link": "https://mahshobio.ir/clinique-calming"},
-    "عمومی": {"name": "کیت مراقبت کامل پوست", "link": "https://mahshobio.ir/skincare-kit"}
+    "جوش": {"name": "سرم ضدجوش", "link": "https://mahshobio.ir/product-category/skincare/%d8%b6%d8%af-%d8%ac%d9%88%d8%b4/"},
+    "خشکی": {"name": "سرم هیالورونیک", "link": "https://mahshobio.ir/product-category/skincare/moisturizer/"},
+    "لک": {"name": "سرم ضدلک", "link": "https://mahshobio.ir/product-category/skincare/%d8%b6%d8%af-%d9%84%da%a9/"},
+    "چروک": {"name": "کرم ضدچروک قوی", "link": "https://mahshobio.ir/product-category/skincare/%d8%b6%d8%af-%da%86%d8%b1%d9%88%da%a9/"},
+    "منافذ": {"name": "سرم نیاسینامید", "link": "https://mahshobio.ir/product-category/skincare/%d8%b1%d9%81%d8%b9-%d9%85%d9%86%d8%a7%d9%81%d8%b0-%d8%a8%d8%a7%d8%b2/"},
+    "لایه": {"name": "سرم لایه بردار", "link": "https://mahshobio.ir/product-category/skincare/%d9%84%d8%a7%db%8c%d9%87-%d8%a8%d8%b1%d8%af%d8%a7%d8%b1/"},
+    "ترمیم": {"name": "سرم بوستر", "link": "https://mahshobio.ir/product-category/skincare/%d8%aa%d8%b1%d9%85%db%8c%d9%85-%da%a9%d9%86%d9%86%d8%af%d9%87/"},
+    "چشم": {"name": "سرم دور چشم", "link": "https://mahshobio.ir/product-category/skincare/%d8%af%d9%88%d8%b1-%da%86%d8%b4%d9%85/"},
+    "تونر": {"name": "تونر", "link": "https://https://mahshobio.ir/product-category/skincare/%d8%aa%d9%88%d9%86%d8%b1/"},
+    "آفتاب": {"name": "ضد آفتاب", "link": "https://mahshobio.ir/product-category/skincare/%d8%b6%d8%af-%d8%a2%d9%81%d8%aa%d8%a7%d8%a8/"},
+    "شوینده": {"name": "شوینده", "link": "https://mahshobio.ir/product-category/skincare/%d8%b4%d9%88%db%8c%d9%86%d8%af%d9%87-%d8%b5%d9%88%d8%b1%d8%aa/"},
+    "مرطوب": {"name": "مرطوب کننده", "link": "https://mahshobio.ir/product-category/skincare/%da%a9%d8%b1%d9%85-%d9%85%d8%b1%d8%b7%d9%88%d8%a8-%da%a9%d9%86%d9%86%d8%af%d9%87/"},
+    "عمومی": {"name": "کیت مراقبت کامل پوست", "link": "https://mahshobio.ir/product/some-by-mi-retinol-kit/"}
 }
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -79,7 +86,7 @@ async def description_received(update: Update, context: ContextTypes.DEFAULT_TYP
         ])
 
         text = getattr(response, "text", None) or response.candidates[0].content.parts[0].text
-        await update.message.reply_text(text, parse_mode='Markdown')
+        await update.message.reply_text(text)
 
     except Exception as e:
         print("Error:", e)
